@@ -75,11 +75,16 @@ class UltimateTicTacToe:
             
 
 if __name__ == "__main__":
-    board = UltimateTicTacToeState()
-    print(board)
-    while board.winner == None:
-        actions = UltimateTicTacToe.actions(board)
-        if (len(actions) > 9):
-            print("any subboard available to move")
-        board = UltimateTicTacToe.result(board, random.choice(actions))
+    winners_list = []
+    for i in range(100):
+        board = UltimateTicTacToeState()
         print(board)
+        while board.winner == None:
+            actions = UltimateTicTacToe.actions(board)
+            if (len(actions) > 9):
+                print("any subboard available to move")
+            board = UltimateTicTacToe.result(board, random.choice(actions))
+            print(board)
+        winners_list.append(board.winner)
+    for player in "XOC":
+        print(winners_list.count(player))
