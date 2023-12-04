@@ -45,9 +45,8 @@ class UltimateTicTacToe:
     def actions(state):
         if state.last_move != None:
             if state.subboard_grid[state.last_move[2]][state.last_move[3]].winner == None:
-                subboard_actions = TicTacToe.actions(state.subboard_grid[state.last_move[0]][state.last_move[1]])
-                return [(state.last_move[0], state.last_move[1], action[0], action[1]) for action in subboard_actions]
-            
+                subboard_actions = TicTacToe.actions(state.subboard_grid[state.last_move[2]][state.last_move[3]])
+                return [(state.last_move[2], state.last_move[3], action[0], action[1]) for action in subboard_actions]            
         return [(i, j, k, l) for i in range(3) for j in range(3) for k in range(3) for l in range(3) if (state.subboard_grid[i][j].winner == None and state.subboard_grid[i][j].grid[k][l] == "-")]
     def result(state, action):
         i, j, k, l = action
@@ -60,41 +59,53 @@ class UltimateTicTacToe:
         if state.to_move == "O":
             state_copy.to_move = "X"
         if TicTacToe.is_terminal(state_copy.subboard_grid[i][j]):
-            state_copy.winner = state.to_move
-            state_copy.to_move = None
+            state_copy.subboard_grid[i][j].winner = state.to_move
+
         elif TicTacToe.actions(state_copy.subboard_grid[i][j]) == []:
-            state_copy.winner = "C"
-            state_copy.to_move = None
+            state_copy.subboard_grid[i][j].winner = state.to_move
         if UltimateTicTacToe.is_terminal(state_copy):
             state_copy.winner = state.to_move
             state_copy.to_move = None
         elif UltimateTicTacToe.actions(state_copy) == []:
             state_copy.winner = "C"
             state_copy.to_move = None
+        state_copy.last_move = action
         return state_copy
-    def play_game(x_player, o_player):
-        board = UltimateTicTacToeState()
-        print(board)
+    def play_game(board, x_player, o_player, quiet = False):
         turn_counter = 0
         while board.winner == None:
             actions = UltimateTicTacToe.actions(board)
-            if (len(actions) > 9):
+            if (len(actions) > 9) and not quiet:
                 print("any subboard available to move")
             if turn_counter % 2 == 0:
                 board = UltimateTicTacToe.result(board, x_player(board))
             else:
                 board = UltimateTicTacToe.result(board, o_player(board))
-            print(board)
-        winners_list.append(board.winner)
+            if not quiet:
+                print(board)
+            turn_counter += 1
         return board
-    def random_agent(board):
-        return random.choice(UltimateTicTacToe.actions(board))
+def random_agent(board):
+    return random.choice(UltimateTicTacToe.actions(board))
+def user_input_agent(board):
+    actions_list = [str(action).strip(" ") for action in UltimateTicTacToe.actions(board)]
+    print("Actions available:", actions_list)
+    action = input("Choose an action from the list")
+    while action.strip(" ") not in actions_list:
+        action = input("Action not available, choose again from the list")
+    return tuple(map(int, action[1:-1].split(",")))
+
             
 
 if __name__ == "__main__":
     winners_list = []
     for i in range(100):
-        board = UltimateTicTacToe.play_game(UltimateTicTacToe.random_agent, UltimateTicTacToe.random_agent)
+        board = UltimateTicTacToeState()
+        board = UltimateTicTacToe.play_game(board, random_agent, random_agent)
         winners_list.append(board.winner)
     for player in "XOC":
         print(winners_list.count(player))
+    # uncomment this this to play a game yourself:
+    ''' board = UltimateTicTacToeState()
+    board = UltimateTicTacToe.play_game(board, user_agent, random_agent) '''
+
