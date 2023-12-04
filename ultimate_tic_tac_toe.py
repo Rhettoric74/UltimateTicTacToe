@@ -72,19 +72,29 @@ class UltimateTicTacToe:
             state_copy.winner = "C"
             state_copy.to_move = None
         return state_copy
+    def play_game(x_player, o_player):
+        board = UltimateTicTacToeState()
+        print(board)
+        turn_counter = 0
+        while board.winner == None:
+            actions = UltimateTicTacToe.actions(board)
+            if (len(actions) > 9):
+                print("any subboard available to move")
+            if turn_counter % 2 == 0:
+                board = UltimateTicTacToe.result(board, x_player(board))
+            else:
+                board = UltimateTicTacToe.result(board, o_player(board))
+            print(board)
+        winners_list.append(board.winner)
+        return board
+    def random_agent(board):
+        return random.choice(UltimateTicTacToe.actions(board))
             
 
 if __name__ == "__main__":
     winners_list = []
     for i in range(100):
-        board = UltimateTicTacToeState()
-        print(board)
-        while board.winner == None:
-            actions = UltimateTicTacToe.actions(board)
-            if (len(actions) > 9):
-                print("any subboard available to move")
-            board = UltimateTicTacToe.result(board, random.choice(actions))
-            print(board)
+        board = UltimateTicTacToe.play_game(UltimateTicTacToe.random_agent, UltimateTicTacToe.random_agent)
         winners_list.append(board.winner)
     for player in "XOC":
         print(winners_list.count(player))
