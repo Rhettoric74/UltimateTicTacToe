@@ -17,14 +17,29 @@ class MonteCarloNode:
                 node.successors.append(MonteCarloNode(UltimateTicTacToe.result(node.board, action)))
     def random_policy(node):
         return random.choice(node.successors)
-    def simulate(node, target_winner, playout_policy = random_policy):
+    def heatmap_policy(node):
+        best_heatmap_value = 0
+        best_successor = None
+        for i in range(len(node.actions)):
+            if node.board.to_move == "O":
+                board_heatmap_val = node.successors[i].board.o_heatmap[node.actions[i][0]][node.actions[i][1]]
+                subboard_heatmap_val = node.successors[i].board.subboard_grid[node.actions[i][0]][node.actions[i][1]].o_heatmap[node.actions[i][2]][node.actions[i][3]]
+            elif node.board.to_move == "X":
+                board_heatmap_val = node.successors[i].board.x_heatmap[node.actions[i][0]][node.actions[i][1]]
+                subboard_heatmap_val = node.successors[i].board.subboard_grid[node.actions[i][0]][node.actions[i][1]].x_heatmap[node.actions[i][2]][node.actions[i][3]]
+            if board_heatmap_val + subboard_heatmap_val >= best_heatmap_value:
+                best_heatmap_value = board_heatmap_val + subboard_heatmap_val
+                best_successor = node.successors[i]
+        return best_successor
+            
+    def simulate(node, target_winner, playout_policy = heatmap_policy):
         simulation_path = [node]
         cur_node = node
         while cur_node.board.winner == None and cur_node.actions != []:
             ''' print("Cur board")
             print(cur_node.board) '''
             MonteCarloNode.expand(cur_node)
-            cur_node = MonteCarloNode.random_policy(cur_node)
+            cur_node = playout_policy(cur_node)
             ''' print("updated board")
             print(cur_node.board) '''
             simulation_path.append(cur_node)
@@ -99,7 +114,7 @@ if __name__ == "__main__":
         result = UltimateTicTacToe.play_game(board, monte_carlo_player, random_agent)
         wins_dict[result.winner] += 1
     print(wins_dict)
-    policy = "random_playout_seleciton_ucb_1"
+    policy = "heatmap_playout_seleciton_ucb_1"
     with open("results/" + policy + ".json", "w") as fw:
         json.dump(wins_dict, fw)
         

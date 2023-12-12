@@ -5,6 +5,8 @@ import random
 class UltimateTicTacToeState:
     def __init__(self):
         self.subboard_grid = [[TicTacToeState() for i in range(3)] for j in range(3)]
+        self.x_heatmap = [[3, 2, 3], [2, 4, 2], [3, 2, 3]]
+        self.o_heatmap = [[3, 2, 3], [2, 4, 2], [3, 2, 3]]
         self.to_move = "X"
         self.winner = None
         self.last_move = None
@@ -25,6 +27,36 @@ class UltimateTicTacToeState:
         else:
             outstring += self.to_move + " to move."
         return outstring
+    def update_heatmaps(self):
+        winners_grid = []
+        for i in range(3):
+            winners_grid.append([])
+            for j in range(3):
+                winners_grid[i].append(self.subboard_grid[i][j].winner)
+        for i in range(3):
+            for j in range(3):
+                o_wins_possible = 0
+                if "X" not in winners_grid[i]:
+                    o_wins_possible += 1
+                if "X" not in [row[j] for row in winners_grid]:
+                    o_wins_possible += 1
+                # add to diagonal heatmaps if they are possible
+                if (i == j) and "X" not in [winners_grid[k][k] for k in range(3)]:
+                    o_wins_possible += 1
+                if (i == 2 - j) and "X" not in [winners_grid[k][2 - k] for k in range(3)]:
+                    o_wins_possible += 1
+                self.o_heatmap[i][j] = o_wins_possible
+                x_wins_possible = 0
+                if "O" not in winners_grid[i]:
+                    x_wins_possible += 1
+                if "O" not in [row[j] for row in winners_grid]:
+                    x_wins_possible += 1
+                # add to diagonal heatmaps if they are possible
+                if (i == j) and "O" not in [winners_grid[k][k] for k in range(3)]:
+                    x_wins_possible += 1
+                if (i == 2 - j) and "O" not in [winners_grid[k][2 - k] for k in range(3)]:
+                    x_wins_possible += 1
+                self.x_heatmap[i][j] = x_wins_possible
     
 class UltimateTicTacToe:
     def __init__(self):
@@ -70,6 +102,7 @@ class UltimateTicTacToe:
             state_copy.winner = "C"
             state_copy.to_move = None
         state_copy.last_move = action
+        state_copy.update_heatmaps()
         return state_copy
     def play_game(board, x_player, o_player, quiet = False):
         turn_counter = 0
@@ -83,8 +116,25 @@ class UltimateTicTacToe:
                 board = UltimateTicTacToe.result(board, o_player(board))
             if not quiet:
                 print(board)
+                #print(board.x_heatmap)
+                #print(board.o_heatmap)
             turn_counter += 1
         return board
+def heatmap_agent(board):
+    best_heatmap_value = 0
+    best_action = None
+    actions = UltimateTicTacToe.actions(board)
+    for i in range(len(actions)):
+        if board.to_move == "O":
+            board_heatmap_val = UltimateTicTacToe.result(board, actions[i]).o_heatmap[actions[i][0]][actions[i][1]]
+            subboard_heatmap_val = UltimateTicTacToe.result(board, actions[i]).subboard_grid[actions[i][0]][actions[i][1]].o_heatmap[actions[i][2]][actions[i][3]]
+        elif board.to_move == "X":
+            board_heatmap_val = UltimateTicTacToe.result(board, actions[i]).x_heatmap[actions[i][0]][actions[i][1]]
+            subboard_heatmap_val = UltimateTicTacToe.result(board, actions[i]).subboard_grid[actions[i][0]][actions[i][1]].x_heatmap[actions[i][2]][actions[i][3]]
+        if 5 * board_heatmap_val + subboard_heatmap_val >= best_heatmap_value:
+            best_heatmap_value = 5 * board_heatmap_val + subboard_heatmap_val
+            best_action = actions[i]
+    return best_action
 def random_agent(board):
     return random.choice(UltimateTicTacToe.actions(board))
 def user_input_agent(board):
@@ -101,7 +151,7 @@ if __name__ == "__main__":
     winners_list = []
     for i in range(100):
         board = UltimateTicTacToeState()
-        board = UltimateTicTacToe.play_game(board, random_agent, random_agent)
+        board = UltimateTicTacToe.play_game(board, random_agent, heatmap_agent)
         winners_list.append(board.winner)
     for player in "XOC":
         print(winners_list.count(player))

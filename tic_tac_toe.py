@@ -3,6 +3,8 @@ import random
 class TicTacToeState:
     def __init__(self):
         self.grid = [["-" for i in range(3)] for j in range(3)]
+        self.x_heatmap = [[3, 2, 3], [2, 4, 2], [3, 2, 3]]
+        self.o_heatmap = [[3, 2, 3], [2, 4, 2], [3, 2, 3]]
         self.to_move = "X"
         self.winner = None
     def __repr__(self):
@@ -16,8 +18,34 @@ class TicTacToeState:
         else:
             string_board += self.to_move + " to move.\n"
         return string_board
+    def update_heatmaps(self):
+        for i in range(3):
+            for j in range(3):
+                o_wins_possible = 0
+                if "X" not in self.grid[i]:
+                    o_wins_possible += 1
+                if "X" not in [row[j] for row in self.grid]:
+                    o_wins_possible += 1
+                # add to diagonal heatmaps if they are possible
+                if (i == j) and "X" not in [self.grid[k][k] for k in range(3)]:
+                    o_wins_possible += 1
+                if (i == 2 - j) and "X" not in [self.grid[k][2 - k] for k in range(3)]:
+                    o_wins_possible += 1
+                self.o_heatmap[i][j] = o_wins_possible
+                x_wins_possible = 0
+                if "O" not in self.grid[i]:
+                    x_wins_possible += 1
+                if "O" not in [row[j] for row in self.grid]:
+                    x_wins_possible += 1
+                # add to diagonal heatmaps if they are possible
+                if (i == j) and "O" not in [self.grid[k][k] for k in range(3)]:
+                    x_wins_possible += 1
+                if (i == 2 - j) and "O" not in [self.grid[k][2 - k] for k in range(3)]:
+                    x_wins_possible += 1
+                self.x_heatmap[i][j] = x_wins_possible
 
 class TicTacToe:
+
     def __init__(self):
         self.initial = TicTacToeState()
     def is_terminal(state):
@@ -59,11 +87,14 @@ class TicTacToe:
         elif TicTacToe.actions(state_copy) == []:
             state_copy.winner = "C"
             state_copy.to_move = None
+        state_copy.update_heatmaps()
         return state_copy
 if __name__ == "__main__":
     board = TicTacToeState()
     while board.winner == None:
         print(board)
+        print(board.o_heatmap)
+        print(board.x_heatmap)
         action = random.choice(TicTacToe.actions(board))
         board = TicTacToe.result(board, action)
     print(board)
