@@ -1,6 +1,6 @@
 # minimax.py
 import random
-from ultimate_tic_tac_toe import UltimateTicTacToe, UltimateTicTacToeState
+from ultimate_tic_tac_toe import UltimateTicTacToe, UltimateTicTacToeState, random_agent, heatmap_agent
 
 # Updated MinimaxNode class
 class MinimaxNode:
@@ -53,8 +53,7 @@ def minimax_agent(board):
         value = minimax(child.board, depth=3, alpha=alpha, beta=beta, maximizing_player=False)
         if value > best_value:
             best_value = value
-            best_action = child.actions[0]
-
+            best_action = root.actions[root.children.index(child)]
     return best_action
 
 
@@ -64,16 +63,20 @@ def evaluate(state):
         return sum(sum(row) for row in state.x_heatmap)
     elif state.to_move == "O":
         return sum(sum(row) for row in state.o_heatmap)
+    else:
+        if state.winner == "X":
+            return 10
+        elif state.winner == "O":
+            return -10
+        else:
+            return 0
 
 
-
-def random_policy(board):
-    return random.choice(UltimateTicTacToe.actions(board))
 
 if __name__ == "__main__":
     wins_dict = {"X": 0, "O": 0, "C": 0}
     for i in range(100):
         board = UltimateTicTacToeState()
-        result = UltimateTicTacToe.play_game(board, minimax_agent, random_policy)
+        result = UltimateTicTacToe.play_game(board, minimax_agent, heatmap_agent)
         wins_dict[result.winner] += 1
     print(wins_dict)
