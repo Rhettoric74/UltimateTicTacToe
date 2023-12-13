@@ -32,7 +32,7 @@ class MonteCarloNode:
                 best_successor = node.successors[i]
         return best_successor
             
-    def simulate(node, target_winner, playout_policy = heatmap_policy):
+    def simulate(node, target_winner, playout_policy = random_policy):
         simulation_path = [node]
         cur_node = node
         while cur_node.board.winner == None and cur_node.actions != []:
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     wins_dict = {"X":0, "O":0, "C":0}
     for i in range(100):
         board = UltimateTicTacToeState()
-        result = UltimateTicTacToe.play_game(board, monte_carlo_player, random_agent)
+        result = UltimateTicTacToe.play_game(board, monte_carlo_player, heatmap_agent)
         wins_dict[result.winner] += 1
     print(wins_dict)
     policy = "heatmap_playout_seleciton_ucb_1"

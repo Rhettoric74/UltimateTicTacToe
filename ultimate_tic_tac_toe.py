@@ -151,11 +151,11 @@ if __name__ == "__main__":
     winners_list = []
     for i in range(100):
         board = UltimateTicTacToeState()
-        board = UltimateTicTacToe.play_game(board, random_agent, heatmap_agent)
+        board = UltimateTicTacToe.play_game(board, heatmap_agent, heatmap_agent)
         winners_list.append(board.winner)
     for player in "XOC":
         print(winners_list.count(player))
     # uncomment this this to play a game yourself:
-    ''' board = UltimateTicTacToeState()
-    board = UltimateTicTacToe.play_game(board, user_agent, random_agent) '''
+    board = UltimateTicTacToeState()
+    board = UltimateTicTacToe.play_game(board, user_input_agent, heatmap_agent)
 
