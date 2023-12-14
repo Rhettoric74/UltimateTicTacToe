@@ -1,6 +1,8 @@
 # minimax.py
 import random
-from ultimate_tic_tac_toe import UltimateTicTacToe, UltimateTicTacToeState, random_agent, heatmap_agent
+import json
+from ultimate_tic_tac_toe import UltimateTicTacToe, UltimateTicTacToeState, random_agent, heatmap_agent, user_input_agent
+from monte_carlo import monte_carlo_player
 
 # Updated MinimaxNode class
 class MinimaxNode:
@@ -10,7 +12,7 @@ class MinimaxNode:
         self.children = []
 
     def expand(self):
-        if self.board.winner is None and not self.children:
+        if self.board.winner == None and self.children == []:
             self.children = [MinimaxNode(UltimateTicTacToe.result(self.board, action)) for action in self.actions]
 
 # Updated minimax function
@@ -50,7 +52,7 @@ def minimax_agent(board):
     beta = float('inf')
 
     for child in root.children:
-        value = minimax(child.board, depth=3, alpha=alpha, beta=beta, maximizing_player=False)
+        value = minimax(child.board, depth=5, alpha=alpha, beta=beta, maximizing_player=False)
         if value > best_value:
             best_value = value
             best_action = root.actions[root.children.index(child)]
@@ -65,9 +67,9 @@ def evaluate(state):
         return sum(sum(row) for row in state.o_heatmap)
     else:
         if state.winner == "X":
-            return 10
+            return 25
         elif state.winner == "O":
-            return -10
+            return -25
         else:
             return 0
 
@@ -75,8 +77,20 @@ def evaluate(state):
 
 if __name__ == "__main__":
     wins_dict = {"X": 0, "O": 0, "C": 0}
+    dir_name = "results/minimax_results"
+    # enter the name of your test here, it should follow the format:
+    # <descriptor of x-player agent>_vs_<descriptor of o-player agent>.json
+    # for example:
+    # random_agent_vs_heatmap_agent.json
+    test_name = "heatmap_eval_d3_vs_heatmap_agent.json"
+    # default sample size is 100
     for i in range(100):
-        board = UltimateTicTacToeState()
-        result = UltimateTicTacToe.play_game(board, minimax_agent, heatmap_agent)
-        wins_dict[result.winner] += 1
+        try:
+            board = UltimateTicTacToeState()
+            result = UltimateTicTacToe.play_game(board, minimax_agent, user_input_agent)
+            wins_dict[result.winner] += 1
+        except:
+            print("weird bug, missed a simulation")
+    with open(dir_name + "/" + test_name, "w") as fw:
+        json.dump(wins_dict, fw)
     print(wins_dict)

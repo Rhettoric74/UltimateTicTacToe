@@ -108,13 +108,22 @@ def monte_carlo_player(board, time_limit = 1):
     print(best_win_rate)
     return best_action
 if __name__ == "__main__":
-    wins_dict = {"X":0, "O":0, "C":0}
+    wins_dict = {"X": 0, "O": 0, "C": 0}
+    dir_name = "results/monte_carlo_results"
+    # enter the name of your test here, it should follow the format:
+    # <descriptor of x-player agent>_vs_<descriptor of o-player agent>.json
+    # for example:
+    # random_agent_vs_heatmap_agent.json
+    test_name = "random_playout_selection_ucb1_vs_heatmap_agent.json"
+    # default sample size is 100
     for i in range(100):
-        board = UltimateTicTacToeState()
-        result = UltimateTicTacToe.play_game(board, monte_carlo_player, heatmap_agent)
-        wins_dict[result.winner] += 1
-    print(wins_dict)
-    policy = "heatmap_playout_seleciton_ucb_1"
-    with open("results/" + policy + ".json", "w") as fw:
+        try:
+            board = UltimateTicTacToeState()
+            result = UltimateTicTacToe.play_game(board, monte_carlo_player, heatmap_agent)
+            wins_dict[result.winner] += 1
+        except:
+            print("weird bug, missed a simulation")
+    with open(dir_name + "/" + test_name, "w") as fw:
         json.dump(wins_dict, fw)
+    print(wins_dict)
         

@@ -1,6 +1,7 @@
 from tic_tac_toe import TicTacToeState, TicTacToe
 import copy
 import random
+import json
 
 class UltimateTicTacToeState:
     def __init__(self):
@@ -69,7 +70,7 @@ class UltimateTicTacToe:
                 if state.subboard_grid[0][i].winner == char and char == state.subboard_grid[1][i].winner and char == state.subboard_grid[2][i].winner:
                     return True
         for char in ["X", "O"]:
-            if state.subboard_grid[0][0].winner == char and char == state.subboard_grid[1][1].winner and char == state.subboard_grid[2][2].winner:
+            if (state.subboard_grid[0][0].winner == char) and (char == state.subboard_grid[1][1].winner) and (char == state.subboard_grid[2][2].winner):
                 return True 
             if state.subboard_grid[2][0].winner == char and char == state.subboard_grid[1][1].winner and char == state.subboard_grid[0][2].winner:
                 return True 
@@ -85,16 +86,12 @@ class UltimateTicTacToe:
         if state.subboard_grid[i][j].grid[k][l] != "-" or state.subboard_grid[i][j].winner != None:
             raise(Exception("Attempted to move onto occupied space"))
         state_copy = copy.deepcopy(state)
-        state_copy.subboard_grid[i][j].grid[k][l] = state.to_move
+        state.subboard_grid[i][j].to_move = state.to_move
+        state_copy.subboard_grid[i][j] = TicTacToe.result(state.subboard_grid[i][j], (k, l))
         if state.to_move == "X":
             state_copy.to_move = "O"
         if state.to_move == "O":
             state_copy.to_move = "X"
-        if TicTacToe.is_terminal(state_copy.subboard_grid[i][j]):
-            state_copy.subboard_grid[i][j].winner = state.to_move
-
-        elif TicTacToe.actions(state_copy.subboard_grid[i][j]) == []:
-            state_copy.subboard_grid[i][j].winner = state.to_move
         if UltimateTicTacToe.is_terminal(state_copy):
             state_copy.winner = state.to_move
             state_copy.to_move = None
@@ -131,8 +128,8 @@ def heatmap_agent(board):
         elif board.to_move == "X":
             board_heatmap_val = UltimateTicTacToe.result(board, actions[i]).x_heatmap[actions[i][0]][actions[i][1]]
             subboard_heatmap_val = UltimateTicTacToe.result(board, actions[i]).subboard_grid[actions[i][0]][actions[i][1]].x_heatmap[actions[i][2]][actions[i][3]]
-        if 5 * board_heatmap_val + subboard_heatmap_val >= best_heatmap_value:
-            best_heatmap_value = 5 * board_heatmap_val + subboard_heatmap_val
+        if board_heatmap_val + subboard_heatmap_val >= best_heatmap_value:
+            best_heatmap_value = board_heatmap_val + subboard_heatmap_val
             best_action = actions[i]
     return best_action
 def random_agent(board):
@@ -148,14 +145,22 @@ def user_input_agent(board):
             
 
 if __name__ == "__main__":
-    winners_list = []
+    wins_dict = {"X": 0, "O": 0, "C": 0}
+    dir_name = "results/simple_heuristic_results"
+    # enter the name of your test here, it should follow the format:
+    # <descriptor of x-player agent>_vs_<descriptor of o-player agent>.json
+    # for example:
+    # random_agent_vs_heatmap_agent.json
+    test_name = "random_agent_vs_heatmap_agent.json"
+    # default sample size is 100
     for i in range(100):
-        board = UltimateTicTacToeState()
-        board = UltimateTicTacToe.play_game(board, heatmap_agent, heatmap_agent)
-        winners_list.append(board.winner)
-    for player in "XOC":
-        print(winners_list.count(player))
-    # uncomment this this to play a game yourself:
-    board = UltimateTicTacToeState()
-    board = UltimateTicTacToe.play_game(board, user_input_agent, heatmap_agent)
+        try:
+            board = UltimateTicTacToeState()
+            result = UltimateTicTacToe.play_game(board, random_agent, heatmap_agent)
+            wins_dict[result.winner] += 1
+        except:
+            print("weird bug, missed a simulation")
+    with open(dir_name + "/" +  test_name, "w") as fw:
+        json.dump(wins_dict, fw)
+    print(wins_dict)
 
