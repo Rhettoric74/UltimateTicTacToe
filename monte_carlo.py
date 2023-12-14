@@ -10,11 +10,19 @@ class MonteCarloNode:
         self.playouts = 0
         self.wins = 0
         self.successors = []
+        self.states_to_successors_dict = {}
+    def __repr__(self):
+        board = str(self.board)
+        return board + "\nWins: " + str(self.wins) + "\nPlayouts" + str(self.playouts)
     def expand(node):
         if node.board.winner == None and node.successors == []:
             for action in node.actions:
                 # add all successors to the successors list
-                node.successors.append(MonteCarloNode(UltimateTicTacToe.result(node.board, action)))
+                successor_state = UltimateTicTacToe.result(node.board, action)
+                successor_node = MonteCarloNode(successor_state)
+                node.successors.append(successor_node)
+                node.states_to_successors_dict[str(successor_state)] = successor_node
+
     def random_policy(node):
         return random.choice(node.successors)
     def heatmap_policy(node):
@@ -31,8 +39,37 @@ class MonteCarloNode:
                 best_heatmap_value = board_heatmap_val + subboard_heatmap_val
                 best_successor = node.successors[i]
         return best_successor
+    def winning_blocking_heatmap_policy(node):
+        # check if you can win a subboard or block a subboard from the state.
+        # always win the subboard if you can
+        # always block the subboard if you can but you can't win
+        best_heatmap_value = 0
+        best_successor = None
+        for i in range(len(node.actions)):
+            if UltimateTicTacToe.result(node.board, node.actions[i]).subboard_grid[node.actions[i][0]][node.actions[i][1]].winner in ["X", "O"]:
+                return node.successors[i]
+        # block any actions that would result in an opponent win
+        opponent_board = copy.deepcopy(node.board)
+        if node.board.to_move == "X":
+            opponent_board.to_move = "O"
+        else:
+            opponent_board.to_move = "X"
+        for i in range(len(node.actions)):
+            if UltimateTicTacToe.result(opponent_board, node.actions[i]).subboard_grid[node.actions[i][0]][node.actions[i][1]].winner in ["X", "O"]:
+                return node.successors[i]
+        for i in range(len(node.actions)):
+            if node.board.to_move == "O":
+                board_heatmap_val = node.successors[i].board.o_heatmap[node.actions[i][0]][node.actions[i][1]]
+                subboard_heatmap_val = node.successors[i].board.subboard_grid[node.actions[i][0]][node.actions[i][1]].o_heatmap[node.actions[i][2]][node.actions[i][3]]
+            elif node.board.to_move == "X":
+                board_heatmap_val = node.successors[i].board.x_heatmap[node.actions[i][0]][node.actions[i][1]]
+                subboard_heatmap_val = node.successors[i].board.subboard_grid[node.actions[i][0]][node.actions[i][1]].x_heatmap[node.actions[i][2]][node.actions[i][3]]
+            if board_heatmap_val + subboard_heatmap_val >= best_heatmap_value:
+                best_heatmap_value = board_heatmap_val + subboard_heatmap_val
+                best_successor = node.successors[i]
+        return best_successor
             
-    def simulate(node, target_winner, playout_policy = random_policy):
+    def simulate(node, target_winner, playout_policy = winning_blocking_heatmap_policy):
         simulation_path = [node]
         cur_node = node
         while cur_node.board.winner == None and cur_node.actions != []:
@@ -81,9 +118,8 @@ class MonteCarloNode:
                 #print(visited_node.wins)
             visited_node.playouts += 1
 
-def monte_carlo_player(board, time_limit = 1):
+def monte_carlo_search(tree, time_limit = 1):
     print("Monte carlo tree search called")
-    tree = MonteCarloNode(board)
     MonteCarloNode.expand(tree)
     target_winner = board.to_move
     start = time.time()
@@ -96,6 +132,7 @@ def monte_carlo_player(board, time_limit = 1):
         MonteCarloNode.back_propagate(leaf, result, target_winner)
     print("simulations run:", simulations)
     best_action = None
+    best_node = None
     best_win_rate = - float("inf")
     for i in range(len(tree.successors)):
         if tree.successors[i].playouts == 0:
@@ -105,8 +142,27 @@ def monte_carlo_player(board, time_limit = 1):
         if (win_rate >= best_win_rate):
             best_win_rate = win_rate
             best_action = tree.actions[i]
+            best_node = tree.successors[i]
     print(best_win_rate)
-    return best_action
+    return best_action, best_node
+class MonteCarloAgent:
+    def __init__(self, board = UltimateTicTacToeState()):
+        self.root = MonteCarloNode(board)
+        self.cur_node = self.root
+    def move(self, state):
+        # get the node that your opponent played on from last time
+        MonteCarloNode.expand(self.cur_node)
+        opponents_node = self.root
+        if str(state) in self.cur_node.states_to_successors_dict:
+            opponents_node = self.cur_node.states_to_successors_dict[str(state)]
+        action, node = monte_carlo_search(opponents_node)
+        self.cur_node = node
+        print(node.playouts)
+        return action
+
+
+
+
 if __name__ == "__main__":
     wins_dict = {"X": 0, "O": 0, "C": 0}
     dir_name = "results/monte_carlo_results"
@@ -114,14 +170,16 @@ if __name__ == "__main__":
     # <descriptor of x-player agent>_vs_<descriptor of o-player agent>.json
     # for example:
     # random_agent_vs_heatmap_agent.json
-    test_name = "random_playout_selection_ucb1_vs_heatmap_agent.json"
+    test_name = "winning_blocking_heatmap_playout_selection_ucb1_vs_heatmap_agent.json"
     # default sample size is 100
     for i in range(100):
         try:
             board = UltimateTicTacToeState()
-            result = UltimateTicTacToe.play_game(board, monte_carlo_player, heatmap_agent)
+            mc = MonteCarloAgent(board)
+            result = UltimateTicTacToe.play_game(board, mc.move, heatmap_agent)
             wins_dict[result.winner] += 1
-        except:
+        except Exception as e:
+            print(e)
             print("weird bug, missed a simulation")
     with open(dir_name + "/" + test_name, "w") as fw:
         json.dump(wins_dict, fw)

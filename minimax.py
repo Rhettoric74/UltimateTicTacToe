@@ -52,7 +52,7 @@ def minimax_agent(board):
     beta = float('inf')
 
     for child in root.children:
-        value = minimax(child.board, depth=5, alpha=alpha, beta=beta, maximizing_player=False)
+        value = minimax(child.board, depth=3, alpha=alpha, beta=beta, maximizing_player=False)
         if value > best_value:
             best_value = value
             best_action = root.actions[root.children.index(child)]
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     for i in range(100):
         try:
             board = UltimateTicTacToeState()
-            result = UltimateTicTacToe.play_game(board, minimax_agent, user_input_agent)
+            result = UltimateTicTacToe.play_game(board, minimax_agent, heatmap_agent)
             wins_dict[result.winner] += 1
         except:
             print("weird bug, missed a simulation")

@@ -132,6 +132,58 @@ def heatmap_agent(board):
             best_heatmap_value = board_heatmap_val + subboard_heatmap_val
             best_action = actions[i]
     return best_action
+def stochastic_heatmap_agent(board):
+    best_heatmap_value = 0
+    best_actions = []
+    actions = UltimateTicTacToe.actions(board)
+    for i in range(len(actions)):
+        if board.to_move == "O":
+            board_heatmap_val = UltimateTicTacToe.result(board, actions[i]).o_heatmap[actions[i][0]][actions[i][1]]
+            subboard_heatmap_val = UltimateTicTacToe.result(board, actions[i]).subboard_grid[actions[i][0]][actions[i][1]].o_heatmap[actions[i][2]][actions[i][3]]
+        elif board.to_move == "X":
+            board_heatmap_val = UltimateTicTacToe.result(board, actions[i]).x_heatmap[actions[i][0]][actions[i][1]]
+            subboard_heatmap_val = UltimateTicTacToe.result(board, actions[i]).subboard_grid[actions[i][0]][actions[i][1]].x_heatmap[actions[i][2]][actions[i][3]]
+        if board_heatmap_val + subboard_heatmap_val == best_heatmap_value:
+            best_heatmap_value = board_heatmap_val + subboard_heatmap_val
+            best_actions.append(actions[i])
+        if board_heatmap_val + subboard_heatmap_val > best_heatmap_value:
+            best_heatmap_value = board_heatmap_val + subboard_heatmap_val
+            best_actions = [actions[i]]
+    return random.choice(best_actions)
+def winning_blocking_heatmap_agent(board):
+    # heatmap agent that first checks if it can win or block its opponent on the current subboard.
+    # it always wins a subboard if it can, and always blocks an opponent from winning a subboard if it can
+    # but can't win outright
+    actions = UltimateTicTacToe.actions(board)
+    for i in range(len(actions)):
+        if UltimateTicTacToe.result(board, actions[i]).subboard_grid[actions[i][0]][actions[i][1]].winner in ["X", "O"]:
+            return actions[i]
+    # block any actions that would result in an opponent win
+    opponent_board = copy.deepcopy(board)
+    if board.to_move == "X":
+        opponent_board.to_move = "O"
+    else:
+        opponent_board.to_move = "X"
+    for i in range(len(actions)):
+        if UltimateTicTacToe.result(opponent_board, actions[i]).subboard_grid[actions[i][0]][actions[i][1]].winner in ["X", "O"]:
+            return actions[i]
+    best_heatmap_value = 0
+    best_actions = []
+    for i in range(len(actions)):
+        if board.to_move == "O":
+            board_heatmap_val = UltimateTicTacToe.result(board, actions[i]).o_heatmap[actions[i][0]][actions[i][1]]
+            subboard_heatmap_val = UltimateTicTacToe.result(board, actions[i]).subboard_grid[actions[i][0]][actions[i][1]].o_heatmap[actions[i][2]][actions[i][3]]
+        elif board.to_move == "X":
+            board_heatmap_val = UltimateTicTacToe.result(board, actions[i]).x_heatmap[actions[i][0]][actions[i][1]]
+            subboard_heatmap_val = UltimateTicTacToe.result(board, actions[i]).subboard_grid[actions[i][0]][actions[i][1]].x_heatmap[actions[i][2]][actions[i][3]]
+        if board_heatmap_val + subboard_heatmap_val == best_heatmap_value:
+            best_heatmap_value = board_heatmap_val + subboard_heatmap_val
+            best_actions.append(actions[i])
+        if board_heatmap_val + subboard_heatmap_val > best_heatmap_value:
+            best_heatmap_value = board_heatmap_val + subboard_heatmap_val
+            best_actions = [actions[i]]
+    return random.choice(best_actions)
+
 def random_agent(board):
     return random.choice(UltimateTicTacToe.actions(board))
 def user_input_agent(board):
@@ -151,12 +203,12 @@ if __name__ == "__main__":
     # <descriptor of x-player agent>_vs_<descriptor of o-player agent>.json
     # for example:
     # random_agent_vs_heatmap_agent.json
-    test_name = "random_agent_vs_heatmap_agent.json"
+    test_name = "winning_blocking_heatmap_agent_vs_heatmap_agent.json"
     # default sample size is 100
     for i in range(100):
         try:
             board = UltimateTicTacToeState()
-            result = UltimateTicTacToe.play_game(board, random_agent, heatmap_agent)
+            result = UltimateTicTacToe.play_game(board, winning_blocking_heatmap_agent, user_input_agent)
             wins_dict[result.winner] += 1
         except:
             print("weird bug, missed a simulation")
