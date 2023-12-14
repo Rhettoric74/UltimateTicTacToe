@@ -2,7 +2,7 @@
 import random
 import json
 from ultimate_tic_tac_toe import UltimateTicTacToe, UltimateTicTacToeState, random_agent, heatmap_agent, user_input_agent
-from monte_carlo import monte_carlo_player
+from monte_carlo import *
 
 # Updated MinimaxNode class
 class MinimaxNode:

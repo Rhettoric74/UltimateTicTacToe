@@ -11,13 +11,10 @@ if __name__ == "__main__":
     test_name = "winning_blocking_heatmap_playout_selection_ucb1_vs_heatmap_eval_d3_agent.json"
     # default sample size is 100
     for i in range(100):
-        try:
-            board = UltimateTicTacToeState()
-            result = UltimateTicTacToe.play_game(board, monte_carlo_player, minimax_agent)
-            wins_dict[result.winner] += 1
-        except Exception as e:
-            print(e)
-            print("weird bug, missed a simulation")
+        board = UltimateTicTacToeState()
+        mc = MonteCarloAgent()
+        result = UltimateTicTacToe.play_game(board, mc.move, heatmap_agent)
+        wins_dict[result.winner] += 1
     with open(dir_name + "/" + test_name, "w") as fw:
         json.dump(wins_dict, fw)
     print(wins_dict)

@@ -121,7 +121,7 @@ class MonteCarloNode:
 def monte_carlo_search(tree, time_limit = 1):
     print("Monte carlo tree search called")
     MonteCarloNode.expand(tree)
-    target_winner = board.to_move
+    target_winner = tree.board.to_move
     start = time.time()
     simulations = 0
     while time.time() - start < time_limit:
@@ -175,7 +175,7 @@ if __name__ == "__main__":
     for i in range(100):
         try:
             board = UltimateTicTacToeState()
-            mc = MonteCarloAgent(board)
+            mc = MonteCarloAgent()
             result = UltimateTicTacToe.play_game(board, mc.move, heatmap_agent)
             wins_dict[result.winner] += 1
         except Exception as e:
