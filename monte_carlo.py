@@ -69,7 +69,7 @@ class MonteCarloNode:
                 best_successor = node.successors[i]
         return best_successor
     # change the default parameter to change the playout policy
-    def simulate(node, target_winner, playout_policy = random_policy):
+    def simulate(node, target_winner, playout_policy = winning_blocking_heatmap_policy):
         simulation_path = [node]
         cur_node = node
         while cur_node.board.winner == None and cur_node.actions != []:
@@ -170,13 +170,13 @@ if __name__ == "__main__":
     # <descriptor of x-player agent>_vs_<descriptor of o-player agent>.json
     # for example:
     # random_agent_vs_heatmap_agent.json
-    test_name = "random_playout_selection_ucb1_vs_winning_blockingheatmap_agent.json"
+    test_name = "random_playout_selection_ucb1_vs_heatmap_agent.json"
     # default sample size is 100
     for i in range(100):
         try:
             board = UltimateTicTacToeState()
             mc = MonteCarloAgent()
-            result = UltimateTicTacToe.play_game(board, mc.move, winning_blocking_heatmap_agent)
+            result = UltimateTicTacToe.play_game(board, mc.move, heatmap_agent)
             wins_dict[result.winner] += 1
         except Exception as e:
             print(e)
