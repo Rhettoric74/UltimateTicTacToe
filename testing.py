@@ -8,12 +8,12 @@ if __name__ == "__main__":
     # <descriptor of x-player agent>_vs_<descriptor of o-player agent>.json
     # for example:
     # random_agent_vs_heatmap_agent.json
-    test_name = "winning_blocking_heatmap_playout_selection_ucb1_vs_heatmap_eval_d3_agent.json"
+    test_name = "random_playout_selection_ucb1_vs_heatmap_eval_d3_agent.json"
     # default sample size is 100
     for i in range(100):
         board = UltimateTicTacToeState()
         mc = MonteCarloAgent()
-        result = UltimateTicTacToe.play_game(board, mc.move, heatmap_agent)
+        result = UltimateTicTacToe.play_game(board, mc.move, minimax_agent)
         wins_dict[result.winner] += 1
     with open(dir_name + "/" + test_name, "w") as fw:
         json.dump(wins_dict, fw)
