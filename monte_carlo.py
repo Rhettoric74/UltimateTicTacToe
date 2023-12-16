@@ -170,13 +170,13 @@ if __name__ == "__main__":
     # <descriptor of x-player agent>_vs_<descriptor of o-player agent>.json
     # for example:
     # random_agent_vs_heatmap_agent.json
-    test_name = "heatmap_policy_selection_ucb1_vs_winning_blocking_heatmap_agent.json"
+    test_name = "winning_blocking_heatmap_policy_selection_ucb1_vs_random_agent.json"
     # default sample size is 100
     for i in range(100):
         try:
             board = UltimateTicTacToeState()
             mc = MonteCarloAgent()
-            result = UltimateTicTacToe.play_game(board, mc.move, user_input_agent)
+            result = UltimateTicTacToe.play_game(board, mc.move, random_agent)
             wins_dict[result.winner] += 1
         except Exception as e:
             print(e)

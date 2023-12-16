@@ -13,7 +13,9 @@ if __name__ == "__main__":
     for i in range(100):
         board = UltimateTicTacToeState()
         mc = MonteCarloAgent()
-        result = UltimateTicTacToe.play_game(board, mc.move, minimax_agent)
+        # specify the agents you want to simulate in this line
+        # using user_input_agent will allow you to manually play against a model
+        result = UltimateTicTacToe.play_game(board, mc.move, user_input_agent)
         wins_dict[result.winner] += 1
     with open(dir_name + "/" + test_name, "w") as fw:
         json.dump(wins_dict, fw)
